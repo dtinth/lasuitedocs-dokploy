@@ -9,19 +9,27 @@
   encode gzip
 
   handle /api/* {
-    reverse_proxy backend:8000
+    reverse_proxy backend:8000 {
+      header_up X-Forwarded-Proto https
+    }
   }
 
   handle /admin/* {
-    reverse_proxy backend:8000
+    reverse_proxy backend:8000 {
+      header_up X-Forwarded-Proto https
+    }
   }
 
   handle /static/* {
-    reverse_proxy backend:8000
+    reverse_proxy backend:8000 {
+      header_up X-Forwarded-Proto https
+    }
   }
 
   handle /media/* {
-    reverse_proxy backend:8000
+    reverse_proxy backend:8000 {
+      header_up X-Forwarded-Proto https
+    }
   }
 
   handle /collaboration/ws/* {
