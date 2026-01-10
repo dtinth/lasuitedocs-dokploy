@@ -240,7 +240,18 @@ for (const [name, service] of Object.entries(data.services)) {
   } else if (service.volumes) {
     throw new Error("Unexpected volumes for service " + name);
   }
+
+  // Add restart policy
+  service.restart = "unless-stopped";
 }
+
+// Add Caddy reverse proxy service
+data.services!["caddy"] = {
+  build: "./caddy",
+  expose: ["8083"],
+  depends_on: ["backend", "frontend", "y-provider"],
+  restart: "unless-stopped",
+};
 
 const result = YAML.stringify(data, null, 2);
 console.log(result);

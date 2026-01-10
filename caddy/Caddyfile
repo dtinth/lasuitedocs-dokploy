@@ -1,0 +1,33 @@
+{
+  admin off
+}
+
+:8083 {
+  encode gzip
+
+  handle /api/* {
+    reverse_proxy backend:8000
+  }
+
+  handle /admin/* {
+    reverse_proxy backend:8000
+  }
+
+  handle /static/* {
+    reverse_proxy backend:8000
+  }
+
+  handle /media/* {
+    reverse_proxy backend:8000
+  }
+
+  handle /collaboration/ws/* {
+    reverse_proxy y-provider:4444
+  }
+
+  handle /collaboration/api/* {
+    reverse_proxy y-provider:4444
+  }
+
+  reverse_proxy frontend:3000
+}

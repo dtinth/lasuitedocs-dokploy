@@ -15,12 +15,14 @@ services:
       - "POSTGRES_PASSWORD=${DB_PASSWORD:?DB_PASSWORD is required}"
     volumes: 
       - postgres_data:/var/lib/postgresql/data/pgdata
+    restart: unless-stopped
   redis: 
     image: redis:8
+    restart: unless-stopped
   backend: 
     image: lasuite/impress-backend:latest
     user: "${DOCKER_USER:-1000}"
-    restart: always
+    restart: unless-stopped
     environment: 
       - DJANGO_CONFIGURATION=Production
       - "DJANGO_ALLOWED_HOSTS=${DOCS_HOST?DOCS_HOST is required}"
@@ -101,6 +103,7 @@ services:
       - "COLLABORATION_SERVER_SECRET=${COLLABORATION_SERVER_SECRET?COLLABORATION_SERVER_SECRET is required}"
       - "Y_PROVIDER_API_KEY=${Y_PROVIDER_API_KEY?Y_PROVIDER_API_KEY is required}"
       - "COLLABORATION_BACKEND_BASE_URL=https://${DOCS_HOST?DOCS_HOST is required}"
+    restart: unless-stopped
   frontend: 
     image: lasuite/impress-frontend:latest
     user: "101"
@@ -110,6 +113,16 @@ services:
       - nginx
       - "-g"
       - daemon off;
+    restart: unless-stopped
+  caddy: 
+    build: ./caddy
+    expose: 
+      - "8083"
+    depends_on: 
+      - backend
+      - frontend
+      - y-provider
+    restart: unless-stopped
 volumes: 
   postgres_data: 
     {}
