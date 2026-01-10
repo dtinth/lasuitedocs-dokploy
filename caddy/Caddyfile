@@ -1,6 +1,8 @@
 {
   admin off
-  trusted_proxies static 172.16.0.0/12
+  servers {
+    trusted_proxies static 172.16.0.0/12
+  }
 }
 
 :8083 {
