@@ -1,0 +1,118 @@
+services: 
+  postgresql: 
+    image: postgres:16
+    healthcheck: 
+      test: 
+        - CMD-SHELL
+        - "pg_isready -d $${POSTGRES_DB} -U $${POSTGRES_USER}"
+      interval: 1s
+      timeout: 2s
+      retries: 300
+    environment: 
+      - PGDATA=/var/lib/postgresql/data/pgdata
+      - "POSTGRES_DB=${DB_NAME:-docs}"
+      - "POSTGRES_USER=${DB_USER:-docs}"
+      - "POSTGRES_PASSWORD=${DB_PASSWORD:?DB_PASSWORD is required}"
+    volumes: 
+      - postgres_data:/var/lib/postgresql/data/pgdata
+  redis: 
+    image: redis:8
+  backend: 
+    image: lasuite/impress-backend:latest
+    user: "${DOCKER_USER:-1000}"
+    restart: always
+    environment: 
+      - DJANGO_CONFIGURATION=Production
+      - "DJANGO_ALLOWED_HOSTS=${DOCS_HOST?DOCS_HOST is required}"
+      - "DJANGO_SECRET_KEY=${DJANGO_SECRET_KEY?DJANGO_SECRET_KEY is required}"
+      - DJANGO_SETTINGS_MODULE=impress.settings
+      - LOGGING_LEVEL_HANDLERS_CONSOLE=ERROR
+      - LOGGING_LEVEL_LOGGERS_ROOT=INFO
+      - LOGGING_LEVEL_LOGGERS_APP=INFO
+      - PYTHONPATH=/app
+      - DJANGO_EMAIL_HOST
+      - DJANGO_EMAIL_HOST_USER
+      - DJANGO_EMAIL_HOST_PASSWORD
+      - DJANGO_EMAIL_PORT
+      - DJANGO_EMAIL_FROM
+      - DJANGO_EMAIL_USE_TLS
+      - DJANGO_EMAIL_USE_SSL
+      - "DJANGO_EMAIL_BRAND_NAME=${DJANGO_EMAIL_BRAND_NAME:-Docs}"
+      - "DJANGO_EMAIL_LOGO_IMG=${DJANGO_EMAIL_LOGO_IMG:-https://placehold.co/400}"
+      - "AWS_S3_ENDPOINT_URL=${AWS_S3_ENDPOINT_URL?AWS_S3_ENDPOINT_URL is required}"
+      - "AWS_S3_ACCESS_KEY_ID=${AWS_S3_ACCESS_KEY_ID?AWS_S3_ACCESS_KEY_ID is required}"
+      - "AWS_S3_SECRET_ACCESS_KEY=${AWS_S3_SECRET_ACCESS_KEY?AWS_S3_SECRET_ACCESS_KEY is required}"
+      - "AWS_STORAGE_BUCKET_NAME=${AWS_STORAGE_BUCKET_NAME?AWS_STORAGE_BUCKET_NAME is required}"
+      - "MEDIA_BASE_URL=https://${DOCS_HOST?DOCS_HOST is required}"
+      - "OIDC_OP_JWKS_ENDPOINT=${OIDC_OP_JWKS_ENDPOINT?OIDC_OP_JWKS_ENDPOINT is required}"
+      - "OIDC_OP_AUTHORIZATION_ENDPOINT=${OIDC_OP_AUTHORIZATION_ENDPOINT?OIDC_OP_AUTHORIZATION_ENDPOINT is required}"
+      - "OIDC_OP_TOKEN_ENDPOINT=${OIDC_OP_TOKEN_ENDPOINT?OIDC_OP_TOKEN_ENDPOINT is required}"
+      - "OIDC_OP_USER_ENDPOINT=${OIDC_OP_USER_ENDPOINT?OIDC_OP_USER_ENDPOINT is required}"
+      - "OIDC_OP_LOGOUT_ENDPOINT=${OIDC_OP_LOGOUT_ENDPOINT?OIDC_OP_LOGOUT_ENDPOINT is required}"
+      - "OIDC_RP_CLIENT_ID=${OIDC_RP_CLIENT_ID?OIDC_RP_CLIENT_ID is required}"
+      - "OIDC_RP_CLIENT_SECRET=${OIDC_RP_CLIENT_SECRET?OIDC_RP_CLIENT_SECRET is required}"
+      - "OIDC_RP_SIGN_ALGO=${OIDC_RP_SIGN_ALGO:-RS256}"
+      - "OIDC_RP_SCOPES=${OIDC_RP_SCOPES:-openid email}"
+      - OIDC_USERINFO_SHORTNAME_FIELD
+      - OIDC_USERINFO_FULLNAME_FIELDS
+      - "LOGIN_REDIRECT_URL=https://${DOCS_HOST?DOCS_HOST is required}"
+      - "LOGIN_REDIRECT_URL_FAILURE=https://${DOCS_HOST?DOCS_HOST is required}"
+      - "LOGOUT_REDIRECT_URL=https://${DOCS_HOST?DOCS_HOST is required}"
+      - "OIDC_REDIRECT_ALLOWED_HOSTS=[\"https://${DOCS_HOST?DOCS_HOST is required}\"]"
+      - "AI_FEATURE_ENABLED=${AI_FEATURE_ENABLED:-false}"
+      - AI_BASE_URL
+      - AI_API_KEY
+      - AI_MODEL
+      - FRONTEND_THEME
+      - FRONTEND_CSS_URL
+      - FRONTEND_FOOTER_FEATURE_ENABLED
+      - FRONTEND_URL_JSON_FOOTER
+      - Y_PROVIDER_API_BASE_URL=http://y-provider:4444/api/
+      - "Y_PROVIDER_API_KEY=${Y_PROVIDER_API_KEY?Y_PROVIDER_API_KEY is required}"
+      - "COLLABORATION_SERVER_SECRET=${COLLABORATION_SERVER_SECRET?COLLABORATION_SERVER_SECRET is required}"
+      - "COLLABORATION_API_URL=https://${DOCS_HOST?DOCS_HOST is required}/collaboration/api/"
+      - "DB_HOST=${DB_HOST:-postgresql}"
+      - "DB_NAME=${DB_NAME:-docs}"
+      - "DB_USER=${DB_USER:-docs}"
+      - "DB_PASSWORD=${DB_PASSWORD?DB_PASSWORD is required}"
+      - "DB_PORT=${DB_PORT:-5432}"
+    healthcheck: 
+      test: 
+        - CMD
+        - python
+        - manage.py
+        - check
+      interval: 15s
+      timeout: 30s
+      retries: 20
+      start_period: 10s
+    depends_on: 
+      postgresql: 
+        condition: service_healthy
+        restart: true
+      redis: 
+        condition: service_started
+  y-provider: 
+    image: lasuite/impress-y-provider:latest
+    user: "${DOCKER_USER:-1000}"
+    environment: 
+      - COLLABORATION_LOGGING=true
+      - "COLLABORATION_SERVER_ORIGIN=https://${DOCS_HOST?DOCS_HOST is required}"
+      - "COLLABORATION_SERVER_SECRET=${COLLABORATION_SERVER_SECRET?COLLABORATION_SERVER_SECRET is required}"
+      - "Y_PROVIDER_API_KEY=${Y_PROVIDER_API_KEY?Y_PROVIDER_API_KEY is required}"
+      - "COLLABORATION_BACKEND_BASE_URL=https://${DOCS_HOST?DOCS_HOST is required}"
+  frontend: 
+    image: lasuite/impress-frontend:latest
+    user: "101"
+    entrypoint: 
+      - /docker-entrypoint.sh
+    command: 
+      - nginx
+      - "-g"
+      - daemon off;
+    depends_on: 
+      backend: 
+        condition: service_healthy
+volumes: 
+  postgres_data: 
+    {}
