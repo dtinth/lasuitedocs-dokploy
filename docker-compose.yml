@@ -110,9 +110,6 @@ services:
       - nginx
       - "-g"
       - daemon off;
-    depends_on: 
-      backend: 
-        condition: service_healthy
 volumes: 
   postgres_data: 
     {}

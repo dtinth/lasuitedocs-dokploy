@@ -236,6 +236,7 @@ for (const [name, service] of Object.entries(data.services)) {
     data.volumes!["postgres_data"] = {};
   } else if (name === "frontend") {
     delete service.volumes;
+    delete service.depends_on;
   } else if (service.volumes) {
     throw new Error("Unexpected volumes for service " + name);
   }
