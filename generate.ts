@@ -36,6 +36,7 @@ const configDef = {
   AWS_S3_ACCESS_KEY_ID: required(),
   AWS_S3_SECRET_ACCESS_KEY: required(),
   AWS_S3_REGION_NAME: required(),
+  AWS_S3_SIGNATURE_VERSION: optional(),
   AWS_STORAGE_BUCKET_NAME: required(),
 
   // # OIDC
@@ -124,6 +125,7 @@ const environmentVariableAdditions: Record<
     AWS_S3_SECRET_ACCESS_KEY: envConfig.AWS_S3_SECRET_ACCESS_KEY,
     AWS_S3_REGION_NAME: envConfig.AWS_S3_REGION_NAME,
     AWS_STORAGE_BUCKET_NAME: envConfig.AWS_STORAGE_BUCKET_NAME,
+    AWS_S3_SIGNATURE_VERSION: envConfig.AWS_S3_SIGNATURE_VERSION,
     MEDIA_BASE_URL: `https://${envConfig.DOCS_HOST}`,
 
     // OIDC
