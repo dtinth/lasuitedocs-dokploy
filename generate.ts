@@ -35,6 +35,7 @@ const configDef = {
   AWS_S3_ENDPOINT_URL: required(),
   AWS_S3_ACCESS_KEY_ID: required(),
   AWS_S3_SECRET_ACCESS_KEY: required(),
+  AWS_S3_REGION_NAME: required(),
   AWS_STORAGE_BUCKET_NAME: required(),
 
   // # OIDC
@@ -121,6 +122,7 @@ const environmentVariableAdditions: Record<
     AWS_S3_ENDPOINT_URL: envConfig.AWS_S3_ENDPOINT_URL,
     AWS_S3_ACCESS_KEY_ID: envConfig.AWS_S3_ACCESS_KEY_ID,
     AWS_S3_SECRET_ACCESS_KEY: envConfig.AWS_S3_SECRET_ACCESS_KEY,
+    AWS_S3_REGION_NAME: envConfig.AWS_S3_REGION_NAME,
     AWS_STORAGE_BUCKET_NAME: envConfig.AWS_STORAGE_BUCKET_NAME,
     MEDIA_BASE_URL: `https://${envConfig.DOCS_HOST}`,
 
