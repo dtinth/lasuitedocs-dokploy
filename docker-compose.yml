@@ -20,7 +20,8 @@ services:
     image: redis:8
     restart: unless-stopped
   backend: 
-    image: lasuite/impress-backend:latest
+    # image: lasuite/impress-backend:latest
+    image: ghcr.io/dtinth/lasuite-docs/backend:sha-f7ea5db
     user: "${DOCKER_USER:-1000}"
     restart: unless-stopped
     environment: 
